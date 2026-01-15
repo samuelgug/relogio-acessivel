@@ -2,12 +2,12 @@
   "name": "Relógio Falante",
   "short_name": "Relógio",
   "description": "Relógio acessível que fala a hora.",
-  "start_url": ".",
+  "start_url": "/relogio-acessivel/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
-  "scope": ".",
+  "scope": "/relogio-acessivel/",
   "icons": [
     {
       "src": "icon-192.png",
