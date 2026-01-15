@@ -24,18 +24,20 @@
         }
 
         body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: sans-serif;
-            background-color: #000000;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
+    width: 100%;
+    /* MUDANÇA AQUI: Usamos min-height para garantir que tenha pelo menos 100% da altura */
+    min-height: 100vh; 
+    overflow: hidden;
+    font-family: sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer; /* Isso faz o cursor de mãozinha aparecer no computador, confirmando a área clicável */
+    touch-action: manipulation; /* MELHORIA: Remove o atraso de 300ms do clique no celular */
+	}
 
         main:focus {
             outline: 3px solid #ffffff;
@@ -188,7 +190,7 @@
     </div>
 
     <script>
-        /* =========================================
+                /* =========================================
            Registro do Service Worker (PWA)
            ========================================= */
         if ('serviceWorker' in navigator) {
@@ -297,20 +299,30 @@
         setInterval(updateVisuals, 1000);
         updateVisuals();
 
+        /* =========================================
+           Correção Definitiva: Ouvinte Global
+           ========================================= */
+        
         function activateApp(e) {
+            // Verifica se clicou nos botões de configurações
             if (e.target.closest('#settings-btn') || e.target.closest('#settings-modal')) return;
-            if (e.type === 'click' || e.type === 'touchstart') e.preventDefault();
-            if (e.type === 'keydown') {
-                if (e.code !== 'Space' && e.code !== 'Enter') return;
-                e.preventDefault();
-            }
+
+            // Previne comportamento padrão (zoom)
+            if (e.type === 'touchstart') e.preventDefault();
+
             speakTime();
         }
 
-        touchZone.addEventListener('click', activateApp);
-        touchZone.addEventListener('touchstart', activateApp, { passive: false });
+        // MUDANÇA AQUI: Usamos 'window' para garantir que toque em qualquer lugar funcione
+        window.addEventListener('touchstart', activateApp, { passive: false });
+        window.addEventListener('click', activateApp);
+        
+        // Teclado continua vinculado ao elemento principal para acessibilidade
         touchZone.addEventListener('keydown', activateApp);
 
+        /* =========================================
+           Lógica do Menu de Configurações
+           ========================================= */
         function toggleSettings() {
             const isOpen = settingsModal.classList.contains('open');
             if (isOpen) {
