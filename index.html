@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Relógio">
+    
+    <!-- Link para o Manifesto do PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <title>Relógio Acessível</title>
+    <style>
+        /* =========================================
+           Reset e Estilos
+           ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        main:focus {
+            outline: 3px solid #ffffff;
+            outline-offset: -10px;
+        }
+
+        #clock-display {
+            font-size: 25vw;
+            font-weight: bold;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            user-select: none;
+        }
+
+        #date-display {
+            font-size: 5vw;
+            margin-top: 20px;
+            opacity: 0.8;
+            text-transform: capitalize;
+        }
+
+        #indicator {
+            position: absolute;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4caf50;
+            opacity: 0.5;
+        }
+
+        /* =========================================
+           Configurações
+           ========================================= */
+        #settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            font-size: 20px;
+        }
+        
+        #settings-btn:focus {
+            outline: 2px solid white;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        #settings-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        #settings-modal.open { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background: #222;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+            border: 1px solid #444;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #555; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px;
+            left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .close-btn {
+            width: 100%;
+            padding: 12px;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        .close-btn:focus { outline: 2px solid #2196F3; }
+
+    </style>
+</head>
+<body>
+
+    <div id="indicator" aria-hidden="true"></div>
+
+    <button id="settings-btn" aria-label="Abrir configurações">⚙</button>
+
+    <main id="touch-zone" tabindex="0" role="button" aria-label="Relógio Falante. Toque na tela ou pressione espaço para ouvir a hora.">
+        <div id="clock-display" aria-hidden="true">00:00</div>
+        <div id="date-display" aria-hidden="true">Carregando</div>
+    </main>
+
+    <div id="settings-modal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+            <h2 id="settings-title" style="margin-bottom:20px; text-align:center;">Configurações</h2>
+            
+            <div class="setting-row">
+                <span>Formato 24 Horas</span>
+                <label class="switch">
+                    <input type="checkbox" id="format-24h" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-row">
+                <span>Falar Data</span>
+                <label class="switch">
+                    <input type="checkbox" id="speak-date">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button class="close-btn" id="close-settings">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           Registro do Service Worker (PWA)
+           ========================================= */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker: Registrado'))
+                .catch(err => console.log('Service Worker: Erro', err));
+            });
+        }
+
+        /* =========================================
+           Lógica do App
+           ========================================= */
+        const clockDisplay = document.getElementById('clock-display');
+        const dateDisplay = document.getElementById('date-display');
+        const touchZone = document.getElementById('touch-zone');
+        const indicator = document.getElementById('indicator');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsBtn = document.getElementById('close-settings');
+        const format24hToggle = document.getElementById('format-24h');
+        const speakDateToggle = document.getElementById('speak-date');
+
+        let config = {
+            is24h: true,
+            speakDate: false
+        };
+
+        try {
+            const saved = localStorage.getItem('accessibleClockConfig');
+            if (saved) {
+                config = JSON.parse(saved);
+                format24hToggle.checked = config.is24h;
+                speakDateToggle.checked = config.speakDate;
+            }
+        } catch (e) {}
+
+        function speakTime() {
+            window.speechSynthesis.cancel();
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+
+            let text = "";
+            if (hours === 0) text = "Meia-noite";
+            else if (hours === 1) text = "Uma hora";
+            else text = `${hours} horas`;
+
+            if (minutes === 0) text += " em ponto";
+            else if (minutes === 30) text += " e trinta";
+            else if (minutes === 15) text += " e quinze";
+            else if (minutes === 45) text += " e quarenta e cinco";
+            else {
+                if (minutes < 10) text += ` e zero ${minutes}`;
+                else text += ` e ${minutes}`;
+            }
+
+            if (config.speakDate) {
+                const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+                text += `, ${dateStr}`;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.volume = 1;
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+
+            const voices = window.speechSynthesis.getVoices();
+            const ptVoices = voices.filter(v => v.lang.includes('pt-BR') || v.lang.includes('pt_BR'));
+            const googleVoice = ptVoices.find(v => v.name.includes('Google'));
+            
+            if (googleVoice) utterance.voice = googleVoice;
+            else if (ptVoices.length > 0) utterance.voice = ptVoices[0];
+            
+            utterance.lang = 'pt-BR';
+
+            indicator.style.backgroundColor = '#2196F3';
+            indicator.style.boxShadow = '0 0 15px #2196F3';
+            
+            utterance.onend = () => {
+                indicator.style.backgroundColor = '#4caf50';
+                indicator.style.boxShadow = '0 0 10px #4caf50';
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function updateVisuals() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            if (!config.is24h) {
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                clockDisplay.innerHTML = `${String(hours).padStart(2, '0')}:${minutes}`;
+            } else {
+                clockDisplay.textContent = `${String(hours).padStart(2, '0')}:${minutes}`;
+            }
+
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            dateDisplay.textContent = now.toLocaleDateString('pt-BR', options);
+        }
+
+        setInterval(updateVisuals, 1000);
+        updateVisuals();
+
+        function activateApp(e) {
+            if (e.target.closest('#settings-btn') || e.target.closest('#settings-modal')) return;
+            if (e.type === 'click' || e.type === 'touchstart') e.preventDefault();
+            if (e.type === 'keydown') {
+                if (e.code !== 'Space' && e.code !== 'Enter') return;
+                e.preventDefault();
+            }
+            speakTime();
+        }
+
+        touchZone.addEventListener('click', activateApp);
+        touchZone.addEventListener('touchstart', activateApp, { passive: false });
+        touchZone.addEventListener('keydown', activateApp);
+
+        function toggleSettings() {
+            const isOpen = settingsModal.classList.contains('open');
+            if (isOpen) {
+                settingsModal.classList.remove('open');
+                settingsModal.setAttribute('aria-hidden', 'true');
+                touchZone.focus();
+                saveConfig();
+            } else {
+                settingsModal.classList.add('open');
+                settingsModal.setAttribute('aria-hidden', 'false');
+                closeSettingsBtn.focus();
+            }
+        }
+
+        function saveConfig() {
+            config.is24h = format24hToggle.checked;
+            config.speakDate = speakDateToggle.checked;
+            localStorage.setItem('accessibleClockConfig', JSON.stringify(config));
+            updateVisuals();
+        }
+
+        settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSettings(); });
+        settingsBtn.addEventListener('keydown', (e) => {
+            if(e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); toggleSettings(); }
+        });
+
+        closeSettingsBtn.addEventListener('click', toggleSettings);
+        closeSettingsBtn.addEventListener('keydown', (e) => {
+             if(e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); toggleSettings(); }
+        });
+
+        settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) toggleSettings(); });
+
+        window.speechSynthesis.onvoiceschanged = () => {};
+    </script>
+</body>
+</html>
