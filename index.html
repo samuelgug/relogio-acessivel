@@ -238,16 +238,21 @@
             if (hours === 0) text = "Meia-noite";
             else if (hours === 1) text = "Uma hora";
             else text = `${hours} horas`;
-
-            if (minutes === 0) text += " em ponto";
-            else if (minutes === 30) text += " e trinta";
-            else if (minutes === 15) text += " e quinze";
-            else if (minutes === 45) text += " e quarenta e cinco";
-            else {
-                if (minutes < 10) text += ` e zero ${minutes}`;
-                else text += ` e ${minutes}`;
+            
+            if (minutes === 0) {
+                text += " em ponto";
+            } else if (minutes === 30) {
+                text += " e trinta minutos";
+            } else if (minutes === 15) {
+                text += " e quinze minutos";
+            } else if (minutes === 45) {
+                text += " e quarenta e cinco minutos";
+            } else {
+                // Aqui está a mudança:
+                // Se for 03, falará "três minutos" (sem o zero).
+                text += ` e ${minutes} minutos`;
             }
-
+        
             if (config.speakDate) {
                 const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
                 text += `, ${dateStr}`;
