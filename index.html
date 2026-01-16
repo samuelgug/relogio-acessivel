@@ -10,11 +10,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Relógio">
     
-    <!-- Link para o Manifesto do PWA -->
+    <!-- Link para o Manifesto e Ícone -->
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
     
     <title>Relógio Acessível</title>
-    <meta name="description" content="Relógio acessível para deficientes visuais. Toque na tela para ouvir a hora exata em voz alta.">
     <style>
         /* =========================================
            Reset e Estilos
@@ -27,20 +27,19 @@
         }
 
         body, html {
-    width: 100%;
-    /* MUDANÇA AQUI: Usamos min-height para garantir que tenha pelo menos 100% da altura */
-    min-height: 100vh; 
-    overflow: hidden;
-    font-family: sans-serif;
-    background-color: #000000;
-    color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer; /* Isso faz o cursor de mãozinha aparecer no computador, confirmando a área clicável */
-    touch-action: manipulation; /* MELHORIA: Remove o atraso de 300ms do clique no celular */
-	}
+            width: 100%;
+            min-height: 100vh; 
+            overflow: hidden;
+            font-family: sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
 
         main:focus {
             outline: 3px solid #ffffff;
@@ -163,7 +162,8 @@
 
     <button id="settings-btn" aria-label="Abrir configurações">⚙</button>
 
-        <main id="touch-zone" role="main" tabindex="0" aria-label="Relógio Falante. Toque na tela ou pressione espaço para ouvir a hora.">
+    <!-- AQUI ESTÁ A CORREÇÃO: Incluí a linha do clock-display -->
+    <main id="touch-zone" role="main" tabindex="0" aria-label="Relógio Falante. Toque na tela ou pressione espaço para ouvir a hora.">
         <div id="clock-display" aria-hidden="true">00:00</div>
         <div id="date-display" aria-hidden="true">Carregando</div>
     </main>
@@ -193,7 +193,7 @@
     </div>
 
     <script>
-                /* =========================================
+        /* =========================================
            Registro do Service Worker (PWA)
            ========================================= */
         if ('serviceWorker' in navigator) {
@@ -251,8 +251,6 @@
             } else if (minutes === 45) {
                 text += " e quarenta e cinco minutos";
             } else {
-                // Aqui está a mudança:
-                // Se for 03, falará "três minutos" (sem o zero).
                 text += ` e ${minutes} minutos`;
             }
         
@@ -308,7 +306,7 @@
         updateVisuals();
 
         /* =========================================
-           Correção Definitiva: Ouvinte Global
+           Ouvinte Global (Tela Inteira)
            ========================================= */
         
         function activateApp(e) {
