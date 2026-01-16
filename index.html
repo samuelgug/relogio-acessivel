@@ -163,7 +163,8 @@
 
     <button id="settings-btn" aria-label="Abrir configurações">⚙</button>
 
-    <main id="touch-zone" tabindex="0" role="button" aria-label="Relógio Falante. Toque na tela ou pressione espaço para ouvir a hora.">
+        <main id="touch-zone" role="main" tabindex="0" aria-label="Relógio Falante. Toque na tela ou pressione espaço para ouvir a hora.">
+        <div id="clock-display" aria-hidden="true">00:00</div>
         <div id="date-display" aria-hidden="true">Carregando</div>
     </main>
 
@@ -174,7 +175,7 @@
             <div class="setting-row">
                 <span>Formato 24 Horas</span>
                 <label class="switch">
-                    <input type="checkbox" id="format-24h" checked>
+                    <input type="checkbox" id="format-24h" checked aria-label="Ativar formato 24 horas">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -182,7 +183,7 @@
             <div class="setting-row">
                 <span>Falar Data</span>
                 <label class="switch">
-                    <input type="checkbox" id="speak-date">
+                    <input type="checkbox" id="speak-date" aria-label="Ativar fala da data">
                     <span class="slider"></span>
                 </label>
             </div>
