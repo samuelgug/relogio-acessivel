@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Relógio acessível para deficientes visuais. Toque na tela para ouvir a hora exata em voz alta.">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -13,6 +14,7 @@
     <link rel="manifest" href="manifest.json">
     
     <title>Relógio Acessível</title>
+    <meta name="description" content="Relógio acessível para deficientes visuais. Toque na tela para ouvir a hora exata em voz alta.">
     <style>
         /* =========================================
            Reset e Estilos
@@ -162,11 +164,10 @@
     <button id="settings-btn" aria-label="Abrir configurações">⚙</button>
 
     <main id="touch-zone" tabindex="0" role="button" aria-label="Relógio Falante. Toque na tela ou pressione espaço para ouvir a hora.">
-        <div id="clock-display" aria-hidden="true">00:00</div>
         <div id="date-display" aria-hidden="true">Carregando</div>
     </main>
 
-    <div id="settings-modal" aria-hidden="true">
+    <div id="settings-modal">
         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="settings-title">
             <h2 id="settings-title" style="margin-bottom:20px; text-align:center;">Configurações</h2>
             
